@@ -1,5 +1,5 @@
 // client
-package client
+package hgmessage
 
 import (
 	"bytes"
@@ -9,7 +9,6 @@ import (
 	"crypto/rand"
 	"encoding/gob"
 	"fmt"
-	"github.com/Zilog8/hgmessage"
 	"net"
 )
 
@@ -77,7 +76,7 @@ func sendCourier(message, nonce []byte, compressed bool, connection string) erro
 		return err
 	}
 	encoder := gob.NewEncoder(conn)
-	p := &hgmessage.Courier{message, nonce, compressed}
+	p := &Courier{message, nonce, compressed}
 	encoder.Encode(p)
 	conn.Close()
 	return nil

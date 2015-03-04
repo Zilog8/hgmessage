@@ -1,5 +1,5 @@
 // server
-package server
+package hgmessage
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"crypto/cipher"
 	"encoding/gob"
 	"fmt"
-	"github.com/Zilog8/hgmessage"
 	"io"
 	"net"
 )
@@ -66,9 +65,9 @@ func shortdecrypt(key, nonce, cipherbytes []byte) ([]byte, error) {
 
 //Returns a Courier from the network
 //port string; for example ":8080"
-func receiveCourier(port string) (hgmessage.Courier, error) {
+func receiveCourier(port string) (Courier, error) {
 	ln, err := net.Listen("tcp", port)
-	p := &hgmessage.Courier{}
+	p := &Courier{}
 	if err != nil {
 		return *p, err
 	}

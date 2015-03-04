@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-	"github.com/Zilog8/hgmessage/client"
+	"github.com/Zilog8/hgmessage"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 			return
 		}
 		fmt.Println("Ready to send", compressionlevel)
-		client.Send(plainbytes, compressionlevel, []byte("yellow submarine"), "localhost:2018")
+		hgmessage.Send(plainbytes, compressionlevel, []byte("yellow submarine"), "localhost:2018")
 		fmt.Println("Sent")
 	}
 }

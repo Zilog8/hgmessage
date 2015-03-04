@@ -7,9 +7,9 @@ call. Data is compressed (lzma), encrypted (aes) and authenticated (gcm).
 
 Sending: 
 
-import	"github.com/Zilog8/hgmessage/client"
+import	"github.com/Zilog8/hgmessage"
 
-err := client.Send(data, compressionlevel, encryptionkey, recipient)
+err := hgmessage.Send(data, compressionlevel, encryptionkey, recipient)
 
 arguments        | type    | description
 ---------------- | ------- | ----------------------------------
@@ -24,9 +24,9 @@ err              | error   |  Error if any, else nil.
 
 Receiving: 
 
-import	"github.com/Zilog8/hgmessage/server"
+import	"github.com/Zilog8/hgmessage"
 
-data, err := server.Receive(encryptionkey, port)
+data, err := hgmessage.Receive(encryptionkey, port)
 
 
 arguments        | type    | description

@@ -5,13 +5,13 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-	"github.com/Zilog8/hgmessage/server"
+	"github.com/Zilog8/hgmessage"
 )
 
 func main() {
 	fmt.Println("Server start")
 	for {
-		serial, err := server.Receive([]byte("yellow submarine"), ":2018")
+		serial, err := hgmessage.Receive([]byte("yellow submarine"), ":2018")
 		if err != nil {
 			fmt.Println("Reception error", err)
 			continue
