@@ -26,7 +26,7 @@ Receiving:
 
 import	"github.com/Zilog8/hgmessage"
 
-data, err := hgmessage.Receive(encryptionkey, port)
+data, sender, err := hgmessage.Receive(encryptionkey, port)
 
 
 arguments        | type    | description
@@ -34,10 +34,11 @@ arguments        | type    | description
 encryptionkey    | []byte  |  The key used to encrypt the data.
 port             | string  |  Port to receive at, e.g. ":4040".
 
-returned         | type    | description
----------------- | ------- | ----------------------------------
-data             | []byte  |  The data that was sent.
-err              | error   |  Error if any, else nil.
+returned         | type     | description
+---------------- | -------  | ----------------------------------
+data             | []byte   |  The data that was sent.
+sender           | net.Addr |  Where the data was sent from.
+err              | error    |  Error if any, else nil.
 
 hgmessage
 (C) 2014, Zilog8 <zeuscoding@gmail.com>

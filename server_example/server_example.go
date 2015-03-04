@@ -11,19 +11,19 @@ import (
 func main() {
 	fmt.Println("Server start")
 	for {
-		serial, err := hgmessage.Receive([]byte("yellow submarine"), ":2018")
+		serial, fromaddr, err := hgmessage.Receive([]byte("yellow submarine"), ":2018")
 		if err != nil {
-			fmt.Println("Reception error", err)
+			fmt.Println("Reception error from", fromaddr, ":", err)
 			continue
 		}
 
 		y, err := deserializeYourData(serial)
 		if err != nil {
-			fmt.Println("Deserialization error", err)
+			fmt.Println("Deserialization error from", fromaddr, ":", err)
 			continue
 		}
 
-		fmt.Println("Decoded to :", y.A, y.B, y.C)
+		fmt.Println("Message from", fromaddr, " decoded to :", y.A, y.B, y.C)
 	}
 }
 

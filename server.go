@@ -13,23 +13,23 @@ import (
 )
 
 //port; port connection string. example ":8080"
-func Receive(key []byte, port string) ([]byte, error) {
-	cur, err := receiveCourier(port)
+func Receive(key []byte, port string) ([]byte, net.Addr, error) {
+	cur, from, err := receiveCourier(port)
 	if err != nil {
 		fmt.Println("Connection error", err)
-		return nil, err
+		return nil, from, err
 	}
 
 	plainbytes, err := shortdecrypt(key, cur.Nonce, cur.Cipherbytes)
 	if err != nil {
 		fmt.Println("Decryption error", err)
-		return nil, err
+		return nil, from, err
 	}
 
 	if cur.Compressed {
 		plainbytes = shortdecompress(plainbytes)
 	}
-	return plainbytes, nil
+	return plainbytes, from, nil
 }
 
 //Returns the lzma-decompressed bytes
@@ -63,21 +63,22 @@ func shortdecrypt(key, nonce, cipherbytes []byte) ([]byte, error) {
 	return plainbytes, nil
 }
 
-//Returns a Courier from the network
+//Returns a Courier from the network, and the address where it came from
 //port string; for example ":8080"
-func receiveCourier(port string) (Courier, error) {
+func receiveCourier(port string) (Courier, net.Addr, error) {
 	ln, err := net.Listen("tcp", port)
 	p := &Courier{}
 	if err != nil {
-		return *p, err
+		return *p, nil, err
 	}
 	conn, err := ln.Accept() // this blocks until connection or error
 	if err != nil {
-		return *p, err
+		return *p, nil, err
 	}
 	dec := gob.NewDecoder(conn)
 	dec.Decode(p)
+	remote := conn.RemoteAddr()
 	conn.Close()
 	ln.Close()
-	return *p, nil
+	return *p, remote, nil
 }
