@@ -10,20 +10,22 @@ import (
 
 func main() {
 	fmt.Println("Server start")
+
+	serialchan, err := hgmessage.ReceiveChannel([]byte("yellow submarine"), ":2018", "")
+	if err != nil {
+		fmt.Println("Error making channel", err)
+		return
+	}
+
 	for {
-		serial, fromaddr, err := hgmessage.Receive([]byte("yellow submarine"), ":2018")
+		box := <-serialchan
+		y, err := deserializeYourData(box.Data)
 		if err != nil {
-			fmt.Println("Reception error from", fromaddr, ":", err)
+			fmt.Println("Deserialization error from", ":", err)
 			continue
 		}
 
-		y, err := deserializeYourData(serial)
-		if err != nil {
-			fmt.Println("Deserialization error from", fromaddr, ":", err)
-			continue
-		}
-
-		fmt.Println("Message from", fromaddr, " decoded to :", y.A, y.B, y.C)
+		fmt.Println("Message from", box.From, ":", y.A, y.B, y.C)
 	}
 }
 

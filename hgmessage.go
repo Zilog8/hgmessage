@@ -1,6 +1,12 @@
 package hgmessage
 
-type Courier struct {
+type courier struct {
 	Cipherbytes, Nonce []byte
-	Compressed         bool
+	IsCompressed       bool
+	From               string
+}
+
+type Box struct {
+	From string
+	Data []byte
 }

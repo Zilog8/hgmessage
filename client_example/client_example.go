@@ -6,19 +6,42 @@ import (
 	"encoding/gob"
 	"fmt"
 	"github.com/Zilog8/hgmessage"
+	"time"
 )
 
 func main() {
-	fmt.Println("Starting to send")
+	fmt.Println("Starting to Send()")
 	for compressionlevel := 0; compressionlevel < 10; compressionlevel++ {
 		plainbytes, err := serializeYourData(YourData{"This is a secret message.", compressionlevel, "Hello World!"})
 		if err != nil {
 			fmt.Println("Serialization error", err)
 			return
 		}
-		fmt.Println("Ready to send", compressionlevel)
 		hgmessage.Send(plainbytes, compressionlevel, []byte("yellow submarine"), "localhost:2018")
 		fmt.Println("Sent")
+	}
+
+	fmt.Println("Starting to Send<-")
+	sendChan, err := hgmessage.SendChannel(3, []byte("yellow submarine"), "localhost:2018")
+	if err != nil {
+		fmt.Println("Error making channel", err)
+		return
+	}
+	for i := 0; i < 10; i++ {
+		plainbytes, err := serializeYourData(YourData{"This is a secret message.", i, "Hello World!"})
+		if err != nil {
+			fmt.Println("Serialization error", err)
+			return
+		}
+		sendChan <- plainbytes
+		fmt.Println("Sent")
+	}
+
+	sendChan <- nil
+
+	//Wait till channel empty, or we might cut off transmission
+	for len(sendChan) > 0 {
+		time.Sleep(2 * time.Second)
 	}
 }
 

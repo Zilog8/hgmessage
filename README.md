@@ -2,10 +2,10 @@ README
 ========
 
 hgmessage (or mercury message) is a small and simple wrapper for Go's crypto
-and lzma packages, which allows for sending and receiving data with one simple 
-call. Data is compressed (lzma), encrypted (aes) and authenticated (gcm).
+and lzma packages, which allows for easy transmission of data that is
+compressed (lzma), encrypted (aes) and authenticated (gcm).
 
-Sending: 
+Blocking Send: 
 
 import	"github.com/Zilog8/hgmessage"
 
@@ -16,29 +16,46 @@ arguments        | type    | description
 data             | []byte  |  The data to send.
 compressionlevel | int     |  LZMA compression level from 1-9. Anything else means no compression.
 encryptionkey    | []byte  |  A 128-, 192-, or 256-bit key to encrypt with.
-recipient        | string  |  Where to send the data, e.g. "localhost:4040".
+recipient        | string  |  Where to send the data, e.g. "127.0.0.1:4040".
 
 returned         | type    | description
 ---------------- | ------- | ----------------------------------
 err              | error   |  Error if any, else nil.
 
+Buffered Channel Send:
+
+import	"github.com/Zilog8/hgmessage"
+
+sendChannel, err := hgmessage.SendChannel(compressionlevel, encryptionkey, recipient)
+
+arguments        | type    | description
+---------------- | ------- | ----------------------------------
+compressionlevel | int     |  LZMA compression level from 1-9. Anything else means no compression.
+encryptionkey    | []byte  |  A 128-, 192-, or 256-bit key to encrypt with.
+recipient        | string  |  Where to send the data, e.g. "127.0.0.1:4040".
+
+returned         | type          | description
+---------------- | ------------- | ----------------------------------
+sendChannel      | chan<- []byte |  Accepts data []byte for transport
+err              | error         |  Error if any, else nil.
+
 Receiving: 
 
 import	"github.com/Zilog8/hgmessage"
 
-data, sender, err := hgmessage.Receive(encryptionkey, port)
+boxchannel, err := hgmessage.ReceiveChannel(encryptionkey, port, senders)
 
 
 arguments        | type    | description
 ---------------- | ------- | ----------------------------------
 encryptionkey    | []byte  |  The key used to encrypt the data.
 port             | string  |  Port to receive at, e.g. ":4040".
+senders          | string  |  Permited senders; Matches as a prefix. Example: "127.0." matches "127.0.0.1:50437"
 
-returned         | type     | description
----------------- | -------  | ----------------------------------
-data             | []byte   |  The data that was sent.
-sender           | net.Addr |  Where the data was sent from.
-err              | error    |  Error if any, else nil.
+returned         | type        | description
+---------------- | ----------- | ----------------------------------
+boxchannel       | <-chan *Box |  Pumps out *Box{Data: []byte, From: string}; The data and who it's from
+err              | error       |  Error if any, else nil.
 
 hgmessage
 (C) 2014, Zilog8 <zeuscoding@gmail.com>
