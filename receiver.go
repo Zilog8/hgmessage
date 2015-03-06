@@ -48,7 +48,7 @@ func shortdecrypt(key, nonce, cipherbytes []byte) ([]byte, error) {
 // key; the 128-, 192-, or 256-bit key used to encrypt
 // port; for example: ":4040"
 // from; who to accept from. Matches as a string preffix. Example: "127.0." matches "127.0.0.1:50437"
-//Returns a Box, with the data []byte and a string interpretation of who sent it.
+//Returns a channel of *Box, which contains the data []byte and a string interpretation of who sent it.
 func ReceiveChannel(key []byte, port string, from string) (<-chan *Box, error) {
 
 	ln, err := net.Listen("tcp", port)
