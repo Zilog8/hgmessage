@@ -57,6 +57,22 @@ func (c *courier) UnmarshalBinary(data []byte) error {
 }
 
 type Box struct {
+	Ident byte //Just a convenience, to help identify the type of Data being transported
+	Data  []byte
+
+	//Not serialized; for use by receiver only
 	From string
-	Data []byte
+}
+
+func (m *Box) MarshalBinary() ([]byte, error) {
+	byt := make([]byte, len(m.Data)+1)
+	byt[0] = m.Ident
+	copy(byt[1:], m.Data)
+	return byt, nil
+}
+
+func (m *Box) UnmarshalBinary(data []byte) error {
+	m.Ident = data[0]
+	m.Data = data[1:]
+	return nil
 }

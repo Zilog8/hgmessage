@@ -13,7 +13,7 @@ func main() {
 
 	serialchan, err := hgmessage.ReceiveChannel([]byte("yellow submarine"), ":2018", "")
 	if err != nil {
-		fmt.Println("Error making channel", err)
+		fmt.Println("Error making channel: ", err)
 		return
 	}
 
@@ -21,11 +21,11 @@ func main() {
 		box := <-serialchan
 		y, err := deserializeYourData(box.Data)
 		if err != nil {
-			fmt.Println("Deserialization error from", ":", err)
+			fmt.Println("Deserialization error from", box.From, ":", err)
 			continue
 		}
 
-		fmt.Println("Message from", box.From, ":", y.A, y.B, y.C)
+		fmt.Println("Message of type", box.Ident, "from", box.From, ":", y.A, y.B, y.C)
 	}
 }
 

@@ -17,7 +17,8 @@ func main() {
 			fmt.Println("Serialization error", err)
 			return
 		}
-		hgmessage.Send(plainbytes, compressionlevel, []byte("yellow submarine"), "localhost:2018")
+		boxed := hgmessage.Box{Ident: 1, Data: plainbytes}
+		hgmessage.Send(&boxed, compressionlevel, []byte("yellow submarine"), "localhost:2018")
 		fmt.Println("Sent")
 	}
 
@@ -33,7 +34,8 @@ func main() {
 			fmt.Println("Serialization error", err)
 			return
 		}
-		sendChan <- plainbytes
+		boxed := hgmessage.Box{Ident: 1, Data: plainbytes}
+		sendChan <- &boxed
 		fmt.Println("Sent")
 	}
 

@@ -71,20 +71,25 @@ func ReceiveChannel(key []byte, port string, from string) (<-chan *Box, error) {
 			cur := <-courierchan
 			plainbytes, err := shortdecrypt(key, cur.Nonce, cur.Cipherbytes)
 			if err != nil {
-				fmt.Println("Decryption error", err)
+				fmt.Println("Decryption error:", err)
 			}
 
 			if cur.IsCompressed {
 				plainbytes = shortdecompress(plainbytes)
 			}
-			boxchan <- &Box{Data: plainbytes, From: cur.From}
+			boxed := Box{From: cur.From}
+			err = boxed.UnmarshalBinary(plainbytes)
+			if err != nil {
+				fmt.Println("Unmarshal error:", err)
+			}
+			boxchan <- &boxed
 		}
 	}()
 
 	return boxchan, nil
 }
 
-func safeListener(ln net.Listener, from string, courchan chan<- *courier) {
+func safeListener(ln net.Listener, from string, courierchan chan<- *courier) {
 	defer func() {
 		recover()
 	}()
@@ -97,7 +102,7 @@ func safeListener(ln net.Listener, from string, courchan chan<- *courier) {
 		p := &courier{}
 		for err1 := dec.Decode(p); err1 == nil; err1 = dec.Decode(p) {
 			p.From = conn.RemoteAddr().String()
-			courchan <- p
+			courierchan <- p
 			p = &courier{}
 		}
 	}

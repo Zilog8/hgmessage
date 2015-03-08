@@ -48,14 +48,15 @@ func shortencrypt(key, plainbytes []byte) ([]byte, []byte, error) {
 // compressionlevel; <1 or >9 means no compression
 // key; any 128-, 192-, or 256-bit key
 // connection; for example: "127.0.0.1:4040"
-func Send(data []byte, compressionlevel int, key []byte, connection string) error {
+func Send(message *Box, compressionlevel int, key []byte, connection string) error {
 	compressed := false
+	messageBytes, _ := message.MarshalBinary()
 	if compressionlevel > 0 && compressionlevel < 10 {
 		compressed = true
-		data = shortcompress(data, compressionlevel)
+		messageBytes = shortcompress(messageBytes, compressionlevel)
 	}
 
-	cipherbytes, nonce, err := shortencrypt(key, data)
+	cipherbytes, nonce, err := shortencrypt(key, messageBytes)
 	if err != nil {
 		fmt.Println("Encryption error", err)
 		return err
@@ -68,7 +69,7 @@ func Send(data []byte, compressionlevel int, key []byte, connection string) erro
 	return nil
 }
 
-func safeSender(message, nonce []byte, compressed bool, connection string) error {
+func safeSender(messageBytes, nonce []byte, compressed bool, connection string) error {
 	defer func() {
 		recover()
 	}()
@@ -78,14 +79,14 @@ func safeSender(message, nonce []byte, compressed bool, connection string) error
 		return err
 	}
 	encoder := gob.NewEncoder(conn)
-	p := &courier{Cipherbytes: message, Nonce: nonce, IsCompressed: compressed}
+	p := &courier{Cipherbytes: messageBytes, Nonce: nonce, IsCompressed: compressed}
 	encoder.Encode(p)
 	conn.Close()
 	return nil
 }
 
 //Buffered channel version of Send. Pass a nil to close
-func SendChannel(compressionlevel int, key []byte, connection string) (chan<- []byte, error) {
+func SendChannel(compressionlevel int, key []byte, connection string) (chan<- *Box, error) {
 	conn, err := net.Dial("tcp", connection)
 	if err != nil {
 		return nil, err
@@ -97,13 +98,14 @@ func SendChannel(compressionlevel int, key []byte, connection string) (chan<- []
 		isCompressed = true
 
 	}
-	c := make(chan []byte, 16)
+	c := make(chan *Box, 16)
 	go func() {
-		for data := <-c; data != nil; data = <-c {
+		for message := <-c; message != nil; message = <-c {
+			messageBytes, _ := message.MarshalBinary()
 			if isCompressed {
-				data = shortcompress(data, compressionlevel)
+				messageBytes = shortcompress(messageBytes, compressionlevel)
 			}
-			cipherbytes, nonce, err := shortencrypt(key, data)
+			cipherbytes, nonce, err := shortencrypt(key, messageBytes)
 			if err != nil {
 				fmt.Println("Encryption error", err)
 			}
