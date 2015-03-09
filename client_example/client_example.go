@@ -11,27 +11,39 @@ import (
 
 func main() {
 	fmt.Println("Starting to Send()")
+	Send1()
+
+	fmt.Println("Starting to Send<-")
+	Send2()
+}
+
+func Send1() {
 	for compressionlevel := 0; compressionlevel < 10; compressionlevel++ {
-		message := YourData{"This is a secret message.", compressionlevel, "Hello World!"}
+		message := YourData{"Secret message:", compressionlevel, "Hello World!"}
 		hgmessage.Send(message, compressionlevel, []byte("yellow submarine"), "localhost:2018")
 		fmt.Println("Sent")
 	}
+}
 
-	fmt.Println("Starting to Send<-")
+func Send2() {
+	//Make channel
 	sendChan, err := hgmessage.SendChannel(3, []byte("yellow submarine"), "localhost:2018")
 	if err != nil {
 		fmt.Println("Error making channel", err)
 		return
 	}
+
+	//Send over it
 	for i := 0; i < 10; i++ {
-		message := YourData{"This is a secret message.", i, "Hello World!"}
+		message := YourData{"Secret message:", i, "Hello World!"}
 		sendChan <- message
 		fmt.Println("Sent")
 	}
 
+	//Close channel
 	sendChan <- nil
 
-	//Wait till channel empty, or we might cut off transmission
+	//Wait till channel empty, or we might cut off transmission since this example code exits when we return
 	for len(sendChan) > 0 {
 		time.Sleep(2 * time.Second)
 	}
