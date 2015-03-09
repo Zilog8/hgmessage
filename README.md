@@ -5,7 +5,7 @@ hgmessage (or mercury message) is a small and simple wrapper for Go's crypto
 and lzma packages, which allows for easy transmission of data that is
 compressed (lzma), encrypted (aes) and authenticated (gcm).
 
-Blocking Send: 
+Blocking Send. Makes a new connection every time: 
 
 import	"github.com/Zilog8/hgmessage"
 
@@ -22,7 +22,7 @@ returned         | type    | description
 ---------------- | ------- | ----------------------------------
 err              | error   |  Error if any, else nil.
 
-Buffered Channel Send:
+Buffered Channel Send. Uses a single connection:
 
 import	"github.com/Zilog8/hgmessage"
 
