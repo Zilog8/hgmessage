@@ -13,7 +13,7 @@ err := hgmessage.Send(data, compressionlevel, encryptionkey, recipient)
 
 arguments        | type    | description
 ---------------- | ------- | ----------------------------------
-data             | []byte  |  The data to send.
+data             | Message |  interface Message, which implements encoding.BinaryMarshaler
 compressionlevel | int     |  LZMA compression level from 1-9. Anything else means no compression.
 encryptionkey    | []byte  |  A 128-, 192-, or 256-bit key to encrypt with.
 recipient        | string  |  Where to send the data, e.g. "127.0.0.1:4040".
@@ -35,26 +35,27 @@ encryptionkey    | []byte  |  A 128-, 192-, or 256-bit key to encrypt with.
 recipient        | string  |  Where to send the data, e.g. "127.0.0.1:4040".
 
 returned         | type          | description
----------------- | ------------- | ----------------------------------
-sendChannel      | chan<- []byte |  Accepts data []byte for transport
+---------------- | -------------- | ----------------------------------
+sendChannel      | chan<- Message |  Accepts Message for transmission.
 err              | error         |  Error if any, else nil.
 
 Receiving: 
 
 import	"github.com/Zilog8/hgmessage"
 
-boxchannel, err := hgmessage.ReceiveChannel(encryptionkey, port, senders)
+letterChannel, err := hgmessage.ReceiveChannel(encryptionkey, port, senders, mum)
 
 
 arguments        | type    | description
----------------- | ------- | ----------------------------------
+---------------- | ------------------ | ----------------------------------
 encryptionkey    | []byte  |  The key used to encrypt the data.
 port             | string  |  Port to receive at, e.g. ":4040".
 senders          | string  |  Permited senders; Matches as a prefix. Example: "127.0." matches "127.0.0.1:50437"
+mum				 | MessageUnmarshaler |  func([]byte) (Message, error). Unmarshals []byte back into a Message
 
 returned         | type        | description
----------------- | ----------- | ----------------------------------
-boxchannel       | <-chan *Box |  Pumps out *Box{Data: []byte, From: string}; The data and who it's from
+---------------- | -------------- | ----------------------------------
+letterChannel    | <-chan Letter  |  Pumps out Letter{Data: Message, From: string}; The data and who it's from
 err              | error       |  Error if any, else nil.
 
 hgmessage

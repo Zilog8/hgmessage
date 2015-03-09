@@ -48,14 +48,13 @@ func shortencrypt(key, plainbytes []byte) ([]byte, []byte, error) {
 // compressionlevel; <1 or >9 means no compression
 // key; any 128-, 192-, or 256-bit key
 // connection; for example: "127.0.0.1:4040"
-func Send(message *Box, compressionlevel int, key []byte, connection string) error {
+func Send(message Message, compressionlevel int, key []byte, connection string) error {
 	compressed := false
 	messageBytes, _ := message.MarshalBinary()
 	if compressionlevel > 0 && compressionlevel < 10 {
 		compressed = true
 		messageBytes = shortcompress(messageBytes, compressionlevel)
 	}
-
 	cipherbytes, nonce, err := shortencrypt(key, messageBytes)
 	if err != nil {
 		fmt.Println("Encryption error", err)
@@ -86,7 +85,7 @@ func safeSender(messageBytes, nonce []byte, compressed bool, connection string) 
 }
 
 //Buffered channel version of Send. Pass a nil to close
-func SendChannel(compressionlevel int, key []byte, connection string) (chan<- *Box, error) {
+func SendChannel(compressionlevel int, key []byte, connection string) (chan<- Message, error) {
 	conn, err := net.Dial("tcp", connection)
 	if err != nil {
 		return nil, err
@@ -98,7 +97,7 @@ func SendChannel(compressionlevel int, key []byte, connection string) (chan<- *B
 		isCompressed = true
 
 	}
-	c := make(chan *Box, 16)
+	c := make(chan Message, 16)
 	go func() {
 		for message := <-c; message != nil; message = <-c {
 			messageBytes, _ := message.MarshalBinary()

@@ -48,27 +48,27 @@ func shortdecrypt(key, nonce, cipherbytes []byte) ([]byte, error) {
 // key; the 128-, 192-, or 256-bit key used to encrypt
 // port; for example: ":4040"
 // from; who to accept from. Matches as a string preffix. Example: "127.0." matches "127.0.0.1:50437"
-//Returns a channel of *Box, which contains the data []byte and a string interpretation of who sent it.
-func ReceiveChannel(key []byte, port string, from string) (<-chan *Box, error) {
+//Returns a channel of Letter, which contains the Data Message and a string interpretation of who sent it.
+func ReceiveChannel(key []byte, port string, from string, mum MessageUnmarshaler) (<-chan Letter, error) {
 
 	ln, err := net.Listen("tcp", port)
 	if err != nil {
 		return nil, err
 	}
 
-	courierchan := make(chan *courier, 16)
+	courierChannel := make(chan courier, 16)
 
 	go func() {
 		for {
-			safeListener(ln, from, courierchan)
+			safeListener(ln, from, courierChannel)
 		}
 	}()
 
-	boxchan := make(chan *Box, 16)
+	letterChannel := make(chan Letter, 16)
 
 	go func() {
 		for {
-			cur := <-courierchan
+			cur := <-courierChannel
 			plainbytes, err := shortdecrypt(key, cur.Nonce, cur.Cipherbytes)
 			if err != nil {
 				fmt.Println("Decryption error:", err)
@@ -77,33 +77,35 @@ func ReceiveChannel(key []byte, port string, from string) (<-chan *Box, error) {
 			if cur.IsCompressed {
 				plainbytes = shortdecompress(plainbytes)
 			}
-			boxed := Box{From: cur.From}
-			err = boxed.UnmarshalBinary(plainbytes)
+
+			mess, err := mum(plainbytes)
 			if err != nil {
 				fmt.Println("Unmarshal error:", err)
+			} else {
+				letter := Letter{Data: mess, From: cur.From}
+				letterChannel <- letter
 			}
-			boxchan <- &boxed
 		}
 	}()
 
-	return boxchan, nil
+	return letterChannel, nil
 }
 
-func safeListener(ln net.Listener, from string, courierchan chan<- *courier) {
+func safeListener(ln net.Listener, from string, courierChannel chan<- courier) {
 	defer func() {
 		recover()
 	}()
 
-	conn, err := ln.Accept() // this blocks until connection or error
+	conn, err := ln.Accept()
 	if err != nil || !strings.HasPrefix(conn.RemoteAddr().String(), from) {
 		conn.Close()
 	} else {
 		dec := gob.NewDecoder(conn)
-		p := &courier{}
-		for err1 := dec.Decode(p); err1 == nil; err1 = dec.Decode(p) {
+		p := courier{}
+		for err1 := dec.Decode(&p); err1 == nil; err1 = dec.Decode(&p) {
 			p.From = conn.RemoteAddr().String()
-			courierchan <- p
-			p = &courier{}
+			courierChannel <- p
+			p = courier{}
 		}
 	}
 }

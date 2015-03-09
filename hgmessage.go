@@ -2,6 +2,7 @@ package hgmessage
 
 import (
 	"bytes"
+	"encoding"
 	"encoding/binary"
 )
 
@@ -56,23 +57,13 @@ func (c *courier) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-type Box struct {
-	Ident byte //Just a convenience, to help identify the type of Data being transported
-	Data  []byte
+type Message interface {
+	encoding.BinaryMarshaler
+}
 
-	//Not serialized; for use by receiver only
+type MessageUnmarshaler func([]byte) (Message, error)
+
+type Letter struct {
+	Data Message
 	From string
-}
-
-func (m *Box) MarshalBinary() ([]byte, error) {
-	byt := make([]byte, len(m.Data)+1)
-	byt[0] = m.Ident
-	copy(byt[1:], m.Data)
-	return byt, nil
-}
-
-func (m *Box) UnmarshalBinary(data []byte) error {
-	m.Ident = data[0]
-	m.Data = data[1:]
-	return nil
 }

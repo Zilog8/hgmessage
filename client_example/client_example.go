@@ -12,13 +12,8 @@ import (
 func main() {
 	fmt.Println("Starting to Send()")
 	for compressionlevel := 0; compressionlevel < 10; compressionlevel++ {
-		plainbytes, err := serializeYourData(YourData{"This is a secret message.", compressionlevel, "Hello World!"})
-		if err != nil {
-			fmt.Println("Serialization error", err)
-			return
-		}
-		boxed := hgmessage.Box{Ident: 1, Data: plainbytes}
-		hgmessage.Send(&boxed, compressionlevel, []byte("yellow submarine"), "localhost:2018")
+		message := YourData{"This is a secret message.", compressionlevel, "Hello World!"}
+		hgmessage.Send(message, compressionlevel, []byte("yellow submarine"), "localhost:2018")
 		fmt.Println("Sent")
 	}
 
@@ -29,13 +24,8 @@ func main() {
 		return
 	}
 	for i := 0; i < 10; i++ {
-		plainbytes, err := serializeYourData(YourData{"This is a secret message.", i, "Hello World!"})
-		if err != nil {
-			fmt.Println("Serialization error", err)
-			return
-		}
-		boxed := hgmessage.Box{Ident: 1, Data: plainbytes}
-		sendChan <- &boxed
+		message := YourData{"This is a secret message.", i, "Hello World!"}
+		sendChan <- message
 		fmt.Println("Sent")
 	}
 
@@ -53,10 +43,12 @@ type YourData struct {
 	C string
 }
 
-func serializeYourData(y YourData) ([]byte, error) {
+func (y YourData) MarshalBinary() ([]byte, error) {
 	var b bytes.Buffer
 	enc := gob.NewEncoder(&b)
-	err := enc.Encode(y)
+	err := enc.Encode(y.A)
+	err = enc.Encode(y.B)
+	err = enc.Encode(y.C)
 	if err != nil {
 		return nil, err
 	}

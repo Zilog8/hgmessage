@@ -11,21 +11,21 @@ import (
 func main() {
 	fmt.Println("Server start")
 
-	serialchan, err := hgmessage.ReceiveChannel([]byte("yellow submarine"), ":2018", "")
+	letterChannel, err := hgmessage.ReceiveChannel([]byte("yellow submarine"), ":2018", "", deserializeYourData)
 	if err != nil {
 		fmt.Println("Error making channel: ", err)
 		return
 	}
 
 	for {
-		box := <-serialchan
-		y, err := deserializeYourData(box.Data)
-		if err != nil {
-			fmt.Println("Deserialization error from", box.From, ":", err)
+		letter := <-letterChannel
+
+		if letter.Data == nil {
+			fmt.Println("Deserialization error from", letter.From, ":", err)
 			continue
 		}
-
-		fmt.Println("Message of type", box.Ident, "from", box.From, ":", y.A, y.B, y.C)
+		y := letter.Data.(YourData)
+		fmt.Println("Message from", letter.From, ":", y.A, y.B, y.C)
 	}
 }
 
@@ -35,13 +35,27 @@ type YourData struct {
 	C string
 }
 
-func deserializeYourData(b []byte) (YourData, error) {
+func (y YourData) MarshalBinary() ([]byte, error) {
+	var b bytes.Buffer
+	enc := gob.NewEncoder(&b)
+	err := enc.Encode(y.A)
+	err = enc.Encode(y.B)
+	err = enc.Encode(y.C)
+	if err != nil {
+		return nil, err
+	}
+	return b.Bytes(), nil
+}
+
+func deserializeYourData(b []byte) (hgmessage.Message, error) {
 	bb := bytes.NewBuffer(b)
 	dec := gob.NewDecoder(bb)
 	var y YourData
-	err := dec.Decode(&y)
+	err := dec.Decode(&y.A)
+	err = dec.Decode(&y.B)
+	err = dec.Decode(&y.C)
 	if err != nil {
-		return y, err
+		return nil, err
 	}
 	return y, nil
 }
