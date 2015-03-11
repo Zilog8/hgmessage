@@ -11,7 +11,7 @@ import (
 func main() {
 	fmt.Println("Server start")
 
-	letterChannel, err := hgmessage.ReceiveChannel([]byte("yellow submarine"), ":2018", "", deserializeYourData)
+	letterChannel, err := hgmessage.ReceiveChannel([]byte("yellow submarine"), 2018, "", deserializeYourData)
 	if err != nil {
 		fmt.Println("Error making channel: ", err)
 		return

@@ -49,7 +49,7 @@ letterChannel, err := hgmessage.ReceiveChannel(encryptionkey, port, senders, mum
 arguments        | type    | description
 ---------------- | ------------------ | ----------------------------------
 encryptionkey    | []byte  |  The key used to encrypt the data.
-port             | string  |  Port to receive at, e.g. ":4040".
+port             | int                |  Port to receive at, e.g. 4040.
 senders          | string  |  Permited senders; Matches as a prefix. Example: "127.0." matches "127.0.0.1:50437"
 mum				 | MessageUnmarshaler |  func([]byte) (Message, error). Unmarshals []byte back into a Message
 

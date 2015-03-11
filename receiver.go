@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strconv"
 	"strings"
 )
 
@@ -46,12 +47,12 @@ func shortdecrypt(key, nonce, cipherbytes []byte) ([]byte, error) {
 
 //Receiver Channel:
 // key; the 128-, 192-, or 256-bit key used to encrypt
-// port; for example: ":4040"
+// port; port to open the channel on
 // from; who to accept from. Matches as a string preffix. Example: "127.0." matches "127.0.0.1:50437"
 //Returns a channel of Letter, which contains the Data Message and a string interpretation of who sent it.
-func ReceiveChannel(key []byte, port string, from string, mum MessageUnmarshaler) (<-chan Letter, error) {
+func ReceiveChannel(key []byte, port int, from string, mum MessageUnmarshaler) (<-chan Letter, error) {
 
-	ln, err := net.Listen("tcp", port)
+	ln, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
 		return nil, err
 	}
